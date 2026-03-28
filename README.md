@@ -1,3 +1,23 @@
+# Lyrics-to-Song Demo
+
+## Demo links
+- GitHub: https://github.com/possstum/Case-1.3
+- UI: https://case-13--greg-og.replit.app/ui
+- Docs: https://case-13--greg-og.replit.app/docs
+
+## Result
+The project demonstrates an end-to-end lyrics-to-song generation workflow:
+- control-plane with web UI and REST API
+- async job submission and polling
+- final track generation on an H100 GPU runner using YuE
+
+Generated artifacts:
+- mixed track
+- vocal stem
+- instrumental stem
+
+Note: in the attached sample, the vocal section begins after a relatively long intro, but the full generation pipeline is functioning end-to-end.
+
 # lyrics2song service
 
 Monorepo for the `lyrics2song` service. The control-plane accepts and tracks jobs, while the GPU worker is deployed separately and performs model-side work on GPU-capable infrastructure.
