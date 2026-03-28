@@ -1,0 +1,50 @@
+services:
+  control-plane:
+    build:
+      context: ./apps/control-plane
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: sqlite:///./data/lyrics2song.db
+      REDIS_URL: redis://redis:6379/0
+      QUEUE_NAME: lyrics2song-jobs
+      QUEUE_MODE: rq
+      API_KEYS: dev-api-key
+      JWT_SECRET: dev-jwt-secret
+      AVAILABLE_MODELS: lyrics2song-demo-v1
+      RESULT_BASE_URL: https://storage.example.com/results
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./apps/control-plane/app:/app/app
+      - control_plane_data:/app/data
+    depends_on:
+      - redis
+
+  gpu-worker:
+    build:
+      context: ./apps/gpu-worker
+    command: python worker.py
+    environment:
+      DATABASE_URL: sqlite:///./data/lyrics2song.db
+      REDIS_URL: redis://redis:6379/0
+      QUEUE_NAME: lyrics2song-jobs
+      PROGRESS_CHANNEL: lyrics2song-job-progress
+      S3_BUCKET: lyrics2song-results
+      S3_ENDPOINT_URL: https://storage.example.com
+      S3_PUBLIC_BASE_URL: https://storage.example.com/lyrics2song-results
+      S3_ACCESS_KEY_ID: replace-me
+      S3_SECRET_ACCESS_KEY: replace-me
+      YUE_RUNNER: cli
+      YUE_WORKDIR: /models/YuE
+      YUE_INFER_SCRIPT: infer.py
+    volumes:
+      - ./apps/gpu-worker/worker.py:/app/worker.py
+      - control_plane_data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  control_plane_data:

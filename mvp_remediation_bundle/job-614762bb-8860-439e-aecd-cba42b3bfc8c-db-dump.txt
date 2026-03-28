@@ -1,0 +1,5 @@
+[jobs]
+{"artist": "Bundle Test", "created_at": "2026-03-27 15:33:07.700382", "error_message": "[Errno 2] No such file or directory: '/models/YuE'", "eta_seconds": 0, "id": "614762bb-8860-439e-aecd-cba42b3bfc8c", "model_name": "lyrics2song-demo-v1", "owner_id": "6e1e4e1b8f8b36d08901cdb51b97841dfe20f5efd2fd2fd00768971408c46274", "progress": 1.0, "queue_job_id": "614762bb-8860-439e-aecd-cba42b3bfc8c", "result_url": null, "status": "failed", "title": "Broken YuE", "updated_at": "2026-03-27 15:33:08.350754"}
+
+[job_artifacts]
+<none>

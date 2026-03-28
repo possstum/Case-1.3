@@ -1,0 +1,41 @@
+Collected from `docker logs --tail 200 workid3bundle-gpu-worker-1` on 2026-03-27.
+
+2026-03-27 15:32:21,777 INFO rq.worker Worker rq:worker:e8b5d71ecda844d1910dbdd22499aadb started with PID 1, version 1.16.2
+2026-03-27 15:32:21,777 INFO rq.worker Subscribing to channel rq:pubsub:e8b5d71ecda844d1910dbdd22499aadb
+2026-03-27 15:32:21,780 INFO rq.worker *** Listening on lyrics2song-jobs...
+2026-03-27 15:32:21,781 INFO rq.worker Cleaning registries for queue: lyrics2song-jobs
+2026-03-27 15:33:07,759 INFO rq.worker lyrics2song-jobs: worker.run_generation_job('614762bb-8860-439e-aecd-cba42b3bfc8c', {'lyrics': 'We walked into the night', 'tags': ['dream-pop'], 'duration': 3...) (614762bb-8860-439e-aecd-cba42b3bfc8c)
+2026-03-27 15:33:08,328 INFO lyrics2song.gpu-worker Running YuE inference command: /usr/local/bin/python infer.py --cuda_idx 0 --stage1_model m-a-p/YuE-s1-7B-anneal-en-icl --stage2_model m-a-p/YuE-s2-1B-general --genre_txt /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/genre.txt --lyrics_txt /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/lyrics.txt --run_n_segments 1 --stage2_batch_size 4 --output_dir /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/output --max_new_tokens 3000 --repetition_penalty 1.1
+2026-03-27 15:33:08,338 ERROR lyrics2song.gpu-worker Generation job failed
+Traceback (most recent call last):
+  File "/app/worker.py", line 858, in run_generation_job
+    _run_cli_inference(
+  File "/app/worker.py", line 706, in _run_cli_inference
+    process = subprocess.Popen(
+              ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/local/lib/python3.11/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/models/YuE'
+2026-03-27 15:33:08,376 ERROR rq.worker [Job 614762bb-8860-439e-aecd-cba42b3bfc8c]: exception raised while executing (worker.run_generation_job)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/rq/worker.py", line 1430, in perform_job
+    rv = job.perform()
+         ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/rq/job.py", line 1280, in perform
+    self._result = self._execute()
+                   ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/rq/job.py", line 1317, in _execute
+    result = self.func(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/worker.py", line 858, in run_generation_job
+    _run_cli_inference(
+  File "/app/worker.py", line 706, in _run_cli_inference
+    process = subprocess.Popen(
+              ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/local/lib/python3.11/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/models/YuE'

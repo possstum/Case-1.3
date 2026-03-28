@@ -1,0 +1,18 @@
+Collected on 2026-03-27 for job `614762bb-8860-439e-aecd-cba42b3bfc8c`.
+
+Configured storage target:
+- bucket: `lyrics2song-results`
+- endpoint: `https://storage.example.com`
+- public base URL: `https://storage.example.com/lyrics2song-results`
+- prefix: `results`
+
+Observed job state:
+- `jobs.result_url = NULL`
+- `job_artifacts` rows for this job: none
+- worker failed before `upload_files(...)` was reached
+
+Raw object key / URL:
+- not produced
+
+Existence check:
+- not possible because no object key or result URL was ever written

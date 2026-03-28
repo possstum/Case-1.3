@@ -1,0 +1,7 @@
+services:
+  control-plane:
+    ports:
+      - "8001:8000"
+
+  redis:
+    ports: []

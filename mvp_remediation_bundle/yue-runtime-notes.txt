@@ -1,0 +1,15 @@
+Collected on 2026-03-27.
+
+repo URL: unknown
+commit SHA: unknown
+local path: /models/YuE
+exact entrypoint: /models/YuE/infer.py
+weights path: unknown; worker only exposes model ids `m-a-p/YuE-s1-7B-anneal-en-icl` and `m-a-p/YuE-s2-1B-general`
+local patches / diff: none found
+
+Observed state:
+- `YUE_RUNNER=cli`
+- `YUE_WORKDIR=/models/YuE`
+- `YUE_INFER_SCRIPT=infer.py`
+- `/models/YuE` is missing inside the captured worker container.
+- `find /Users/possstum -maxdepth 5` found no local `YuE/` directory and no external `infer.py` matching a YuE checkout.

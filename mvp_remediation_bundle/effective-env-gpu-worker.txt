@@ -1,0 +1,32 @@
+Collected from `workid3bundle-gpu-worker-1` on 2026-03-27.
+Format: VAR<TAB>source(set|default)<TAB>effective_value
+
+DATABASE_URL	set	sqlite:///./data/lyrics2song.db
+REDIS_URL	set	redis://redis:6379/0
+QUEUE_NAME	set	lyrics2song-jobs
+PROGRESS_CHANNEL	set	lyrics2song-job-progress
+S3_BUCKET	set	lyrics2song-results
+S3_ENDPOINT_URL	set	https://storage.example.com
+S3_ACCESS_KEY_ID	set	***MASKED***
+S3_SECRET_ACCESS_KEY	set	***MASKED***
+S3_SESSION_TOKEN	default	<unset>
+S3_REGION	default	<unset>
+S3_PUBLIC_BASE_URL	set	https://storage.example.com/lyrics2song-results
+S3_PREFIX	default	results
+S3_FORCE_PATH_STYLE	default	True
+YUE_RUNNER	set	cli
+YUE_PYTHON_RUNNER	default	<unset>
+YUE_PYTHON_EXECUTABLE	default	/usr/local/bin/python
+YUE_WORKDIR	set	/models/YuE
+YUE_INFER_SCRIPT	set	infer.py
+YUE_STAGE1_MODEL	default	m-a-p/YuE-s1-7B-anneal-en-icl
+YUE_STAGE2_MODEL	default	m-a-p/YuE-s2-1B-general
+YUE_CUDA_IDX	default	0
+YUE_STAGE2_BATCH_SIZE	default	4
+YUE_MAX_NEW_TOKENS	default	3000
+YUE_REPETITION_PENALTY	default	1.1
+YUE_SEGMENT_SECONDS	default	30
+YUE_DEFAULT_PROMPT_END_TIME	default	30
+YUE_SEED_FLAG	default	--seed
+YUE_EXTRA_ARGS	default	<empty>
+HTTP_TIMEOUT_SECONDS	default	60.0

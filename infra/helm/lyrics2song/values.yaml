@@ -1,0 +1,49 @@
+nameOverride: ""
+fullnameOverride: ""
+
+controlPlane:
+  replicas: 1
+  image:
+    repository: ghcr.io/example/lyrics2song-control-plane
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  env:
+    databaseUrl: sqlite:///./data/lyrics2song.db
+    redisUrl: redis://redis.default.svc.cluster.local:6379/0
+    queueName: lyrics2song-jobs
+    apiKeys: dev-api-key
+    availableModels: lyrics2song-demo-v1
+
+gpuWorker:
+  replicas: 1
+  image:
+    repository: ghcr.io/example/lyrics2song-gpu-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+  env:
+    databaseUrl: sqlite:///./data/lyrics2song.db
+    redisUrl: redis://redis.default.svc.cluster.local:6379/0
+    queueName: lyrics2song-jobs
+    progressChannel: lyrics2song-job-progress
+    s3Bucket: lyrics2song-results
+    s3EndpointUrl: https://storage.example.com
+    s3PublicBaseUrl: https://storage.example.com/lyrics2song-results
+    s3AccessKeyId: replace-me
+    s3SecretAccessKey: replace-me
+    yueRunner: cli
+    yueWorkdir: /models/YuE
+    yueInferScript: infer.py
+
+keda:
+  enabled: true
+  minReplicaCount: 0
+  maxReplicaCount: 4
+  pollingInterval: 30
+  cooldownPeriod: 300
+  redis:
+    address: redis.default.svc.cluster.local:6379
+    listName: rq:queue:lyrics2song-jobs
+    listLength: "1"

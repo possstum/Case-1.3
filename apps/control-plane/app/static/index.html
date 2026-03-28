@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lyrics2Song</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 920px;
+      margin: 24px auto;
+      padding: 0 12px 40px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input,
+    textarea,
+    button,
+    a.link-button {
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid #cfcfcf;
+      border-radius: 8px;
+    }
+
+    button,
+    a.link-button {
+      background: #111;
+      color: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .row {
+      margin: 12px 0;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .downloads {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    progress {
+      width: 100%;
+      height: 22px;
+    }
+
+    .muted {
+      opacity: 0.8;
+    }
+
+    #log {
+      margin-top: 10px;
+      min-height: 120px;
+      padding: 10px 12px;
+      background: #f6f6f6;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lyrics2Song (YuE backend)</h1>
+
+  <div class="row">
+    <label for="apiKey">API Key <span class="muted">(X-API-Key)</span></label>
+    <input id="apiKey" type="text" placeholder="вставьте ключ">
+  </div>
+
+  <div class="row">
+    <label for="tags">genre_tags</label>
+    <input
+      id="tags"
+      type="text"
+      value="inspiring female uplifting pop airy vocal electronic bright vocal"
+    >
+    <p class="muted">Жанр, настроение, инструменты и тип вокала можно указывать одной строкой.</p>
+  </div>
+
+  <div class="row">
+    <label for="lyrics">lyrics</label>
+    <textarea id="lyrics">[verse]
+Я пишу куплет, и он звучит живо.
+Свет в окне и ритм ведут меня красиво.
+[chorus]
+Припев, припев, держи волну.
+Эта песня остается наяву.</textarea>
+  </div>
+
+  <div class="row">
+    <label for="segments">segments</label>
+    <input id="segments" type="number" min="1" max="12" value="2">
+  </div>
+
+  <div class="row actions">
+    <button id="btn" type="button">Generate</button>
+    <span id="status" class="muted"></span>
+  </div>
+
+  <div class="row">
+    <progress id="progress" value="0" max="1"></progress>
+    <div id="log" class="muted" aria-live="polite"></div>
+  </div>
+
+  <div class="row">
+    <audio id="player" controls style="width:100%"></audio>
+    <div id="downloads" class="downloads"></div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("btn");
+    const statusText = document.getElementById("status");
+    const progressBar = document.getElementById("progress");
+    const log = document.getElementById("log");
+    const player = document.getElementById("player");
+    const downloads = document.getElementById("downloads");
+
+    function buildHeaders(apiKey) {
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) {
+        headers["X-API-Key"] = apiKey;
+      }
+      return headers;
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function appendLog(message) {
+      const stamp = new Date().toLocaleTimeString("ru-RU");
+      log.textContent += `[${stamp}] ${message}\n`;
+    }
+
+    function clearPlayer() {
+      player.removeAttribute("src");
+      player.load();
+    }
+
+    function renderDownloads(result) {
+      downloads.innerHTML = "";
+
+      const items = [
+        ["Download mixed", result.mixed_url],
+        ["Download vocals", result.vocals_url],
+        ["Download instrumental", result.instrumental_url],
+      ];
+
+      for (const [label, url] of items) {
+        if (!url) {
+          continue;
+        }
+        const link = document.createElement("a");
+        link.className = "link-button";
+        link.href = url;
+        link.download = "";
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = label;
+        downloads.appendChild(link);
+      }
+    }
+
+    async function pollJob(jobId, apiKey) {
+      let lastSnapshot = "";
+
+      while (true) {
+        await sleep(2000);
+
+        const response = await fetch(`/v1/jobs/${jobId}`, {
+          headers: buildHeaders(apiKey),
+        });
+
+        if (!response.ok) {
+          throw new Error(`/v1/jobs/${jobId}: ${response.status} ${await response.text()}`);
+        }
+
+        const job = await response.json();
+        const progress = Number(job.progress || 0);
+        const percent = Math.round(progress * 100);
+        const summary = `status=${job.status} progress=${percent}%`;
+
+        progressBar.value = progress;
+        statusText.textContent = summary;
+
+        if (summary !== lastSnapshot) {
+          appendLog(summary);
+          lastSnapshot = summary;
+        }
+
+        if (job.status === "completed" && job.result) {
+          player.src = job.result.mixed_url;
+          player.load();
+          renderDownloads(job.result);
+          appendLog("Результат готов.");
+          return;
+        }
+
+        if (job.status === "failed") {
+          const message = (job.error && job.error.message) || job.error_message || "Job failed";
+          appendLog(message);
+          return;
+        }
+      }
+    }
+
+    btn.addEventListener("click", async () => {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const genreTags = document.getElementById("tags").value.trim();
+      const lyrics = document.getElementById("lyrics").value;
+      const segments = Number.parseInt(document.getElementById("segments").value, 10);
+
+      if (!Number.isInteger(segments) || segments < 1) {
+        statusText.textContent = "Неверное значение segments";
+        return;
+      }
+
+      btn.disabled = true;
+      statusText.textContent = "Создаю задачу...";
+      progressBar.value = 0;
+      log.textContent = "";
+      downloads.innerHTML = "";
+      clearPlayer();
+      appendLog(`POST /v1/jobs segments=${segments}`);
+
+      try {
+        const response = await fetch("/v1/jobs", {
+          method: "POST",
+          headers: buildHeaders(apiKey),
+          body: JSON.stringify({
+            genre_tags: genreTags,
+            lyrics,
+            segments,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`/v1/jobs: ${response.status} ${await response.text()}`);
+        }
+
+        const job = await response.json();
+        statusText.textContent = `job_id=${job.job_id}`;
+        appendLog(`Создана задача ${job.job_id}`);
+        await pollJob(job.job_id, apiKey);
+      } catch (error) {
+        statusText.textContent = "Ошибка";
+        appendLog(error instanceof Error ? error.message : String(error));
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Missing or unavailable items at collection time:
+
+1. Repo-root `.env.example` does not exist. The only example env file found in this repo is `apps/control-plane/.env.example`.
+2. `apps/gpu-worker/pyproject.toml` does not exist.
+3. No external YuE checkout was found locally. Configured runtime path `/models/YuE` is missing, so there is no repo URL, commit SHA, helper files, or local diff to include.
+4. Exact YuE weights path is not present anywhere in repo or runtime env. Only model ids are available: `m-a-p/YuE-s1-7B-anneal-en-icl` and `m-a-p/YuE-s2-1B-general`.
+5. No successful storage artifact exists for job `614762bb-8860-439e-aecd-cba42b3bfc8c`, because the worker failed before upload.
+6. No direct YuE child stdout/stderr exists for job `614762bb-8860-439e-aecd-cba42b3bfc8c`, because `subprocess.Popen` failed before the child process started.
+7. No real GPU worker hardware details (exact NVIDIA model / VRAM) were available from this workspace or repo. The current host only reports Apple M1 integrated graphics, which is not the intended YuE worker target.
+8. No real production env files, Replit run command config, systemd unit, or Kubernetes runtime manifests with live secrets were present in this workspace.

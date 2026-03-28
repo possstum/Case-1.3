@@ -1,0 +1,97 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/example/gpu-worker
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+command:
+  - python
+  - worker.py
+args: []
+
+deployment:
+  enabled: false
+  replicas: 1
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+rbac:
+  create: true
+  # Keep empty unless the worker must call the Kubernetes API.
+  rules: []
+
+podAnnotations: {}
+podLabels: {}
+
+env:
+  REDIS_URL: redis://redis.default.svc.cluster.local:6379/0
+  # Exported as both S3_ENDPOINT and S3_ENDPOINT_URL for image compatibility.
+  S3_ENDPOINT: https://minio.default.svc.cluster.local:9000
+  S3_BUCKET: gpu-worker-results
+  MODEL_CACHE_DIR: /models/cache
+
+envFrom: []
+extraEnv: []
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "4Gi"
+    nvidia.com/gpu: "1"
+  limits:
+    cpu: "2"
+    memory: "8Gi"
+    nvidia.com/gpu: "1"
+
+# Adjust the label to whatever your cluster uses for GPU node pools.
+nodeSelector:
+  accelerator: nvidia
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+
+affinity: {}
+
+volumes:
+  - name: model-cache
+    emptyDir: {}
+
+volumeMounts:
+  - name: model-cache
+    mountPath: /models/cache
+
+scaledJob:
+  enabled: true
+  minReplicaCount: 0
+  maxReplicaCount: 20
+  pollingInterval: 5
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  parallelism: 1
+  completions: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: null
+  args:
+    - --burst
+  trigger:
+    type: redis
+    redis:
+      address: redis.default.svc.cluster.local:6379
+      listName: rq:queue:gpu-worker
+      listLength: "1"
+    rabbitmq:
+      host: amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/
+      queueName: gpu-worker
+      mode: QueueLength
+      value: "1"

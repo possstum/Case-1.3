@@ -1,0 +1,110 @@
+{{- if .Values.scaledJob.enabled }}
+{{- $triggerType := lower .Values.scaledJob.trigger.type }}
+{{- $jobArgs := concat .Values.args .Values.scaledJob.args }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ include "gpu-worker.fullname" . }}
+  labels:
+    {{- include "gpu-worker.labels" . | nindent 4 }}
+spec:
+  pollingInterval: {{ .Values.scaledJob.pollingInterval }}
+  minReplicaCount: {{ .Values.scaledJob.minReplicaCount }}
+  maxReplicaCount: {{ .Values.scaledJob.maxReplicaCount }}
+  successfulJobsHistoryLimit: {{ .Values.scaledJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.scaledJob.failedJobsHistoryLimit }}
+  jobTargetRef:
+    parallelism: {{ .Values.scaledJob.parallelism }}
+    completions: {{ .Values.scaledJob.completions }}
+    backoffLimit: {{ .Values.scaledJob.backoffLimit }}
+    ttlSecondsAfterFinished: {{ .Values.scaledJob.ttlSecondsAfterFinished }}
+    {{- with .Values.scaledJob.activeDeadlineSeconds }}
+    activeDeadlineSeconds: {{ . }}
+    {{- end }}
+    template:
+      metadata:
+        labels:
+          {{- include "gpu-worker.selectorLabels" . | nindent 10 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.podAnnotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        serviceAccountName: {{ include "gpu-worker.serviceAccountName" . }}
+        automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+        restartPolicy: Never
+        {{- with .Values.imagePullSecrets }}
+        imagePullSecrets:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        containers:
+          - name: worker
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            {{- with .Values.command }}
+            command:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with $jobArgs }}
+            args:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            env:
+              - name: REDIS_URL
+                value: {{ .Values.env.REDIS_URL | quote }}
+              - name: S3_ENDPOINT
+                value: {{ .Values.env.S3_ENDPOINT | quote }}
+              - name: S3_ENDPOINT_URL
+                value: {{ .Values.env.S3_ENDPOINT | quote }}
+              - name: S3_BUCKET
+                value: {{ .Values.env.S3_BUCKET | quote }}
+              - name: MODEL_CACHE_DIR
+                value: {{ .Values.env.MODEL_CACHE_DIR | quote }}
+              {{- with .Values.extraEnv }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with .Values.envFrom }}
+            envFrom:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            resources:
+              {{- toYaml .Values.resources | nindent 14 }}
+            {{- with .Values.volumeMounts }}
+            volumeMounts:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+        {{- with .Values.volumes }}
+        volumes:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.affinity }}
+        affinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+  triggers:
+    - type: {{ $triggerType | quote }}
+      metadata:
+        {{- if eq $triggerType "redis" }}
+        address: {{ .Values.scaledJob.trigger.redis.address | quote }}
+        listName: {{ .Values.scaledJob.trigger.redis.listName | quote }}
+        listLength: {{ .Values.scaledJob.trigger.redis.listLength | quote }}
+        {{- else if eq $triggerType "rabbitmq" }}
+        host: {{ .Values.scaledJob.trigger.rabbitmq.host | quote }}
+        queueName: {{ .Values.scaledJob.trigger.rabbitmq.queueName | quote }}
+        mode: {{ .Values.scaledJob.trigger.rabbitmq.mode | quote }}
+        value: {{ .Values.scaledJob.trigger.rabbitmq.value | quote }}
+        {{- else }}
+        {{- fail (printf "Unsupported scaledJob.trigger.type %q. Use redis or rabbitmq." .Values.scaledJob.trigger.type) }}
+        {{- end }}
+{{- end }}

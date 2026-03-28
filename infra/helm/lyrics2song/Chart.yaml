@@ -1,0 +1,7 @@
+apiVersion: v2
+name: lyrics2song
+description: Helm chart for lyrics2song control-plane and GPU worker
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+

@@ -1,0 +1,21 @@
+Collected from `workid3bundle-control-plane-1` on 2026-03-27.
+Format: VAR<TAB>source(set|default)<TAB>effective_value
+
+ENVIRONMENT	default	dev
+DATABASE_URL	set	sqlite:///./data/lyrics2song.db
+REDIS_URL	set	redis://redis:6379/0
+QUEUE_NAME	set	lyrics2song-jobs
+QUEUE_MODE	set	rq
+API_KEYS	set	***MASKED***
+JWT_SECRET	set	***MASKED***
+JWT_ALGORITHM	default	HS256
+RATE_LIMIT_CAPACITY	default	20
+RATE_LIMIT_REFILL_PER_SECOND	default	1.0
+DEFAULT_ETA_SECONDS	default	180
+AVAILABLE_MODELS	set	lyrics2song-demo-v1
+RESULT_BASE_URL	set	https://storage.example.com/results
+SIGNED_URL_SECRET	default	***MASKED***
+SIGNED_URL_TTL_SECONDS	default	900
+WEBSOCKET_POLL_INTERVAL_SECONDS	default	1.0
+SIMULATED_JOB_STEP_SECONDS	default	0.35
+DEMO_ARTIFACTS_DIR	default	./data/demo-artifacts

@@ -1,0 +1,15 @@
+Captured facts on 2026-03-27:
+
+- Intended hosting model in `README.md`: Replit hosts only `apps/control-plane`; `apps/gpu-worker` runs separately on GPU-capable infrastructure.
+- Queueing path: FastAPI control-plane -> Redis -> RQ queue `lyrics2song-jobs` -> `apps/gpu-worker/worker.py`.
+- Local bundle trace used one isolated Docker Compose project (`workid3bundle`) with shared SQLite DB at `/app/data/lyrics2song.db` for both control-plane and worker.
+- Production DB is expected to switch via `DATABASE_URL`; repo docs mention Postgres, but no live prod Postgres URL/env file was present in this workspace.
+- Storage is S3-compatible. Effective worker settings in the trace:
+  bucket `lyrics2song-results`
+  endpoint `https://storage.example.com`
+  public base `https://storage.example.com/lyrics2song-results`
+  prefix `results`
+- Control-plane and worker are configured to share the same DB and the same storage namespace in both `docker-compose.yml` and the captured bundle trace.
+- Current host machine reports `Apple M1` integrated GPU with `8` GPU cores via `system_profiler`. `nvidia-smi` is not installed, and this host is not the intended YuE worker target.
+- Repo-level GPU details are incomplete. Helm values only indicate generic NVIDIA scheduling (`nvidia.com/gpu: 1`); exact GPU model and VRAM are not specified anywhere in the repo.
+- External YuE runtime is configured as `/models/YuE/infer.py`, but `/models/YuE` does not exist in the captured worker container or on this machine.

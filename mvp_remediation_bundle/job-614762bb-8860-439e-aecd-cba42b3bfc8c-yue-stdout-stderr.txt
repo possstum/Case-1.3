@@ -1,0 +1,9 @@
+No child YuE stdout/stderr was captured for job `614762bb-8860-439e-aecd-cba42b3bfc8c`.
+
+Reason:
+- `subprocess.Popen(...)` failed before a child process started.
+- Effective `cwd` was `/models/YuE`.
+- Observed exception: `FileNotFoundError: [Errno 2] No such file or directory: '/models/YuE'`.
+
+Command that the worker attempted to launch:
+/usr/local/bin/python infer.py --cuda_idx 0 --stage1_model m-a-p/YuE-s1-7B-anneal-en-icl --stage2_model m-a-p/YuE-s2-1B-general --genre_txt /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/genre.txt --lyrics_txt /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/lyrics.txt --run_n_segments 1 --stage2_batch_size 4 --output_dir /tmp/lyrics2song-614762bb-8860-439e-aecd-cba42b3bfc8c-uqy8bxxi/output --max_new_tokens 3000 --repetition_penalty 1.1

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gpu-worker
+description: Helm chart for a GPU worker with KEDA queue autoscaling
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

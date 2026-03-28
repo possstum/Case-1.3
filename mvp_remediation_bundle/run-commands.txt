@@ -1,0 +1,44 @@
+Repository-declared runtime:
+
+1. Default Docker Compose stack from `docker-compose.yml`
+   Command:
+   `docker compose up --build`
+   Service commands:
+   `control-plane`: `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+   `gpu-worker`: `python worker.py`
+
+2. Documented standalone control-plane run from `README.md`
+   `docker compose up -d redis`
+   `cd apps/control-plane`
+   `python3.11 -m venv .venv`
+   `source .venv/bin/activate`
+   `pip install -r requirements.txt`
+   `export API_KEYS=dev-api-key`
+   `export DATABASE_URL=sqlite:///./data/lyrics2song.db`
+   `export REDIS_URL=redis://127.0.0.1:6379/0`
+   `export QUEUE_MODE=rq`
+   `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
+
+3. Documented standalone gpu-worker run from `README.md`
+   `cd apps/gpu-worker`
+   `python3 -m venv .venv`
+   `source .venv/bin/activate`
+   `pip install -r requirements.txt`
+   `export REDIS_URL=redis://127.0.0.1:6379/0`
+   `export DATABASE_URL=sqlite:///../control-plane/data/lyrics2song.db`
+   `export QUEUE_NAME=lyrics2song-jobs`
+   `export S3_BUCKET=lyrics2song-results`
+   `export S3_ENDPOINT_URL=https://minio.example.com`
+   `export S3_PUBLIC_BASE_URL=https://minio.example.com/lyrics2song-results`
+   `export S3_ACCESS_KEY_ID=...`
+   `export S3_SECRET_ACCESS_KEY=...`
+   `export YUE_RUNNER=cli`
+   `export YUE_WORKDIR=/path/to/YuE`
+   `export YUE_INFER_SCRIPT=infer.py`
+   `python3 worker.py`
+
+4. Actual bundle trace run on 2026-03-27
+   The default `docker-compose.yml` publishes `redis` on host port `6379`, which conflicted with an already-running local container.
+   To get a runnable trace without changing repo code, the stack was started with:
+   `docker compose -p workid3bundle -f mvp_bundle_docker-compose.yml up -d`
+   The captured API requests were sent from inside `workid3bundle-control-plane-1` to `http://127.0.0.1:8000`.
